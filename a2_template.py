@@ -87,9 +87,9 @@ class SatInstance:
         # Start your code
 
         for clause in self.clauses:
+
             if set(assignment.keys()) == set(clause.symbols.keys()):
                 # Build expression
-                #print(clause)
                 expression = []
                 for key in clause.symbols:
                     currentVal = getBool(assignment[key])
@@ -97,11 +97,10 @@ class SatInstance:
                         expression.append( not currentVal)
                     else:
                         expression.append(currentVal)
-
                 # evalulate expression
 
                 if evalExpression(expression) == False :
-                    #print("invalid expression")
+
                     return False
 
         return True;
@@ -139,34 +138,38 @@ def solve_dpll(instance):
     # Start your code
     # find the first sym and assign it a value
     assignment = {}
-    symbolStack  = [];
-    symbolStack.append(instance.symbols.copy())
-    while symbolStack.__len__() > 0:
-        currentSym = symbolStack[0];
-        assignment[currentSym] = 1;
-        ## take the first symbol and assign it a arbitary value of true
-        if assignment.__len__() ==0:
-            print("something fucked up")
-            return None
-        ## If true we continue assining more values
+    count = 0
+    currentVar = instance.symbols[0]
+    assignVar(assignment,currentVar)
+    while assignment.__len__() > 0 :
+
+        if instance.is_satisfied(assignment) == True and assignment.__len__() == instance.symbols.__len__():
+            return assignment
         if instance.is_satisfied(assignment) == False:
-            #reassign value
-            if assignment[currentSym]==1:
-                assignment[currentSym] = -1
+            if assignment[currentVar] == -1:
+                del assignment[currentVar]
+                count = count -1
+                currentVar = instance.symbols[count]
+                assignVar(assignment, currentVar)
             else:
-                del assignment[currentSym]
-                symbolStack.pop()
+                count = count
+                currentVar = instance.symbols[count]
+                assignment[currentVar] = -1
 
-               # symbolsToCopy.append(currentSym)
-
-            currentSym = symbolsToCopy[count]
-            assignment[currentSym] = -1
         else:
-            if assignment.__len__() == instance.symbols.__len__():
-                return assignment
-            count = count +1
-            currentSym=symbolsToCopy[count]
-            assignment[currentSym] =1
+            count = count + 1
+            currentVar = instance.symbols[count]
+            assignVar(assignment,currentVar)
+
+
+
+
+
+def assignVar (assignment,val):
+    if val not in assignment:
+        assignment[val] = 1
+    else:
+        assignment[val] = -1
 
 
     # End your code
