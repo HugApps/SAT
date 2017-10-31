@@ -85,24 +85,21 @@ class SatInstance:
     def is_satisfied(self, assignment):
         ###########################################
         # Start your code
-
+        if assignment.__len__() == 0:
+            return True
         for clause in self.clauses:
-
-            if set(assignment.keys()) == set(clause.symbols.keys()):
-                # Build expression
+            if assignment.items() <= clause.symbols():
+                #evalulate the clause
                 expression = []
                 for key in clause.symbols:
                     currentVal = getBool(assignment[key])
                     if getBool(clause.symbols[key]) == False:
-                        expression.append( not currentVal)
+                        expression.append(not currentVal)
                     else:
                         expression.append(currentVal)
-                # evalulate expression
-
-                if evalExpression(expression) == False :
-
+                if evalExpression(expression) == False:
+                    # Partially correct
                     return False
-
         return True;
         # End your code
         ###########################################
@@ -138,42 +135,48 @@ def solve_dpll(instance):
     # Start your code
     # find the first sym and assign it a value
     assignment = {}
-    count = 0
-    currentVar = instance.symbols[0]
-    assignVar(assignment,currentVar)
-    while assignment.__len__() > 0 :
-
-        if instance.is_satisfied(assignment) == True and assignment.__len__() == instance.symbols.__len__():
-            return assignment
-        if instance.is_satisfied(assignment) == False:
-            if assignment[currentVar] == -1:
-                del assignment[currentVar]
-                count = count -1
-                currentVar = instance.symbols[count]
-                assignVar(assignment, currentVar)
-            else:
-                count = count
-                currentVar = instance.symbols[count]
-                assignment[currentVar] = -1
-
-        else:
-            count = count + 1
-            currentVar = instance.symbols[count]
-            assignVar(assignment,currentVar)
+    find_pure_symbol(instance,assignment)
+   #return dpll(instance,assignment)
 
 
 
-
-
-def assignVar (assignment,val):
-    if val not in assignment:
-        assignment[val] = 1
+def dpll (instance,assignment):
+    if instance.clauses.__len__() == 0:
+        return False
+    if instance.is_satisfied(assignment) == True:
+        return True
     else:
-        assignment[val] = -1
+        return False
+
+
 
 
     # End your code
     ###########################################
+# find clause that only has a single literal, that has not been assigned
+def find_unit_clause (instance,model):
+    for clause in instance.clauses:
+        if clause.symbols.__len__() == 1:
+            if clause.symbols[0] not in model:
+
+             return clause
+# pure symbol only appear as a or -a exclusively?????????????????????????????????????????"'?
+def find_pure_symbol (instance,model):
+   stackOfSym = []
+
+   for sym in instance.symbols:
+     for clause in instance.clauses:
+         print(clause)
+         if sym in clause.symbols:
+             if stackOfSym.__len__() ==0 :
+                 stackOfSym.append(clause.symbols[sym])
+             else:
+                 if stackOfSym[0] != clause.symbols[sym]:
+                     stackOfSym.pop()
+                     break
+     print(stackOfSym)
+            #if clause.symbols[0] senot in model:
+
 
 with open("small_instances.txt", "r") as input_file:
     instance_strs = input_file.read()
