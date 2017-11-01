@@ -1,6 +1,7 @@
 import random
 import time
 import copy
+
 import sys
 
 #####################################################
@@ -85,22 +86,13 @@ class SatInstance:
     def is_satisfied(self, assignment):
         ###########################################
         # Start your code
-        if assignment.__len__() == 0:
+        if assignment.__len__() == False:
+            return False
+        else:
+            for clause in self.clauses:
+                print(clause)
             return True
-        for clause in self.clauses:
-            if assignment.items() <= clause.symbols():
-                #evalulate the clause
-                expression = []
-                for key in clause.symbols:
-                    currentVal = getBool(assignment[key])
-                    if getBool(clause.symbols[key]) == False:
-                        expression.append(not currentVal)
-                    else:
-                        expression.append(currentVal)
-                if evalExpression(expression) == False:
-                    # Partially correct
-                    return False
-        return True;
+        return False;
         # End your code
         ###########################################
 
@@ -135,46 +127,98 @@ def solve_dpll(instance):
     # Start your code
     # find the first sym and assign it a value
     assignment = {}
-    find_pure_symbol(instance,assignment)
-   #return dpll(instance,assignment)
+    #find_pure_symbol(instance,assignment)
+    print(dpll(instance, assignment))
+    print(assignment)
+    return assignment
 
+
+def has_empty_clause(instance):
+    for clause in instance.clauses:
+        if clause.symbols.__len__() == 0:
+            return True
+    return False
 
 
 def dpll (instance,assignment):
+    print("dpll")
+    print(assignment)
+    print(instance)
+   # print(assignment)
+    print("-----------------------------")
     if instance.clauses.__len__() == 0:
-        return False
-    if instance.is_satisfied(assignment) == True:
+        print("nothing to evalulate")
         return True
-    else:
+    if has_empty_clause(instance) == True:
+        print("EMpty clause")
         return False
+
+    else:
+        unit_clauses = find_unit_clause(instance,assignment)
+        if unit_clauses.__len__() >= 1:
+         return dpll(simpliyfy(instance,int(unit_clauses[0]),assignment),assignment)
+
+        nextSymbol = instance.symbols.pop()
+        assignment[nextSymbol] = 1
+        if dpll(simpliyfy(instance,nextSymbol,assignment),assignment) == True:
+            return True
+        else:
+            assignment[nextSymbol] = -1
+            return dpll(simpliyfy(instance,nextSymbol,assignment),assignment)
+
+
+
+
+# get symbol not already in assignment
+def simpliyfy (instance,literal,assignment):
+   # print(instance)
+    assignedVal = assignment[str(literal)]
+    print("remove instances of literal" +str(literal))
+    for clause in instance.clauses:
+        if str(literal) in clause.symbols.keys():
+            if clause.symbols[str(literal)] == assignedVal:
+                instance.clauses.remove(clause)
+            else:
+                del clause.symbols[str(literal)]
+    for clause in instance.clauses:
+        if "remove" in clause.symbols.values():
+            del clause.symbols[literal]
+    if  literal in instance.symbols:
+        instance.symbols.remove(literal)
+    return instance
 
 
 
 
     # End your code
     ###########################################
-# find clause that only has a single literal, that has not been assigned
-def find_unit_clause (instance,model):
+# find clause that only has a single literal, that has not been assigned, removes clauses that contain this unit clause
+def find_unit_clause (instance,assignment):
+    unit_clauses=[]
     for clause in instance.clauses:
         if clause.symbols.__len__() == 1:
-            if clause.symbols[0] not in model:
-
-             return clause
+             for key in clause.symbols:
+                 assignment[key] = clause.symbols[key]
+                 unit_clauses.append(key)
+    return unit_clauses
 # pure symbol only appear as a or -a exclusively?????????????????????????????????????????"'?
 def find_pure_symbol (instance,model):
    stackOfSym = []
-
    for sym in instance.symbols:
      for clause in instance.clauses:
-         print(clause)
          if sym in clause.symbols:
+             # INTIAL STACK IS EMPTY, ASSIGN FIRST VALUE OF FIRST CLAUSE INCLUDING THE SYMBOL
              if stackOfSym.__len__() ==0 :
-                 stackOfSym.append(clause.symbols[sym])
+                 value = clause.symbols[sym]
+                 stackOfSym.append((sym,value))
              else:
-                 if stackOfSym[0] != clause.symbols[sym]:
-                     stackOfSym.pop()
-                     break
-     print(stackOfSym)
+                 valueNew = clause.symbols[sym]
+                 valueOld = stackOfSym[0][1]
+                 if valueOld != valueNew:
+                    stackOfSym=[]
+
+     if stackOfSym.__len__() == 1:
+         return stackOfSym
             #if clause.symbols[0] senot in model:
 
 
