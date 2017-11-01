@@ -141,50 +141,53 @@ def has_empty_clause(instance):
 
 
 def dpll (instance,assignment):
-    print("dpll")
-    print(assignment)
-    print(instance)
    # print(assignment)
     print("-----------------------------")
     if instance.clauses.__len__() == 0:
         print("nothing to evalulate")
-        return True
+        return True , assignment
     if has_empty_clause(instance) == True:
         print("EMpty clause")
-        return False
+        return False ,assignment
 
     else:
         unit_clauses = find_unit_clause(instance,assignment)
         if unit_clauses.__len__() >= 1:
-         return dpll(simpliyfy(instance,int(unit_clauses[0]),assignment),assignment)
+         return dpll(simpliyfy(copy.deepcopy(instance),int(unit_clauses[0]),copy.deepcopy(assignment)),copy.deepcopy(assignment))
 
-        nextSymbol = instance.symbols.pop()
+        nextSymbol = instance.symbols.pop(0)
+        print(nextSymbol)
         assignment[nextSymbol] = 1
-        if dpll(simpliyfy(instance,nextSymbol,assignment),assignment) == True:
-            return True
+        print(assignment)
+        print("true assignment")
+        if dpll(simpliyfy(copy.deepcopy(instance),nextSymbol,copy.deepcopy(assignment)),copy.deepcopy(assignment)) == True:
+            return True,assignment
         else:
+            print("false assignment")
             assignment[nextSymbol] = -1
-            return dpll(simpliyfy(instance,nextSymbol,assignment),assignment)
+            print(assignment)
+            return dpll(simpliyfy(copy.deepcopy(instance),nextSymbol,copy.deepcopy(assignment)),copy.deepcopy(assignment))
 
 
 
 
 # get symbol not already in assignment
 def simpliyfy (instance,literal,assignment):
-   # print(instance)
+    to_delete = []
     assignedVal = assignment[str(literal)]
     print("remove instances of literal" +str(literal))
     for clause in instance.clauses:
         if str(literal) in clause.symbols.keys():
             if clause.symbols[str(literal)] == assignedVal:
-                instance.clauses.remove(clause)
+               # print(clause)
+                to_delete.append(clause)
             else:
                 del clause.symbols[str(literal)]
     for clause in instance.clauses:
         if "remove" in clause.symbols.values():
             del clause.symbols[literal]
-    if  literal in instance.symbols:
-        instance.symbols.remove(literal)
+    for clauseToDelete in to_delete:
+        instance.clauses.remove(clauseToDelete)
     return instance
 
 
@@ -222,7 +225,7 @@ def find_pure_symbol (instance,model):
             #if clause.symbols[0] senot in model:
 
 
-with open("small_instances.txt", "r") as input_file:
+with open("test_assign.txt", "r") as input_file:
     instance_strs = input_file.read()
 
 instance_strs = instance_strs.split("\n\n")
